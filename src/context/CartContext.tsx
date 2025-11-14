@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import {
   addItem,
   clearCart,
@@ -7,15 +7,32 @@ import {
   updateItem,
 } from "../api/cartApi";
 import toast from "react-hot-toast";
+import type { Product } from "../types/product.type";
 
-export const CartContext = createContext(undefined);
+interface CartContextType {
+  cart: Product[];
+  updateCart: (data: any) => Promise<void>;
+  removeCart: () => Promise<void>;
+  removeProduct: (id: number | string) => Promise<void>;
+  loadCart: () => Promise<void>;
+  changeQuantity: (id: number | string, quantity: number) => Promise<void>;
+}
+export const CartContext = createContext<CartContextType | undefined>(
+  undefined
+);
+export const useCart = () => {
+  const context = useContext(CartContext);
+  if (!context) throw new Error("Lỗi context");
+  return context;
+};
 const CartProvider = ({ children }: any) => {
-  const [cart, setCart] = useState<any>([]);
+  const [cart, setCart] = useState<Product[]>([]);
   const loadCart = async () => {
     try {
-      const data: any = await getCart();
-      setCart(data);
-      localStorage.setItem("cart", JSON.stringify(data));
+      const { data }: any = await getCart();
+      const items = Array.isArray(data) ? data : data.items || [];
+      setCart(items);
+      localStorage.setItem("cart", JSON.stringify(items));
     } catch (error) {
       console.log(error);
     }
@@ -23,14 +40,17 @@ const CartProvider = ({ children }: any) => {
   useEffect(() => {
     loadCart();
   }, []);
-  const updateCart = async (data: any) => {
+  const updateCart = async (data: Product) => {
     try {
-      const exit = cart.find((item: any) => item.productId === data.productId);
-      if (exit) {
-        await updateItem(exit.id, { quantity: exit.quantity + 1 });
+      const exist = cart.find(
+        (item: Product) => item.productId === data.productId
+      );
+      console.log(exist);
+      if (exist) {
+        await updateItem(exist.id, { ...exist, quantity: exist.quantity + 1 });
         toast.success("Cập nhật sản phẩm thành công");
       }
-      if (!exit) {
+      if (!exist) {
         await addItem({ ...data, quantity: 1 });
         toast.success("Thêm sản phẩm thành công");
       }
@@ -59,10 +79,26 @@ const CartProvider = ({ children }: any) => {
       console.log(error);
     }
   };
-
+  const changeQuantity = async (id: number | string, quantity: number) => {
+    try {
+      await updateItem(id, { quantity });
+      await loadCart();
+      toast.success("Đã cập nhật số lượng");
+    } catch (error) {
+      console.log(error);
+      toast.error("Lỗi khi cập nhật số lượng");
+    }
+  };
   return (
     <CartContext.Provider
-      value={{ cart, updateCart, removeCart, removeProduct, loadCart }}
+      value={{
+        cart,
+        updateCart,
+        removeCart,
+        removeProduct,
+        loadCart,
+        changeQuantity,
+      }}
     >
       {children}
     </CartContext.Provider>

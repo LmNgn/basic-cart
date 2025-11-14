@@ -15,7 +15,6 @@ const ProductList = () => {
   const loadProducts = async () => {
     try {
       const { data } = await getProducts();
-      console.log(data.products);
       setProducts(data.products);
     } catch (error) {
       console.log(error);

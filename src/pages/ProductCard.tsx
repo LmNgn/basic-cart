@@ -1,29 +1,26 @@
 import { useState } from "react";
-
-interface ProductCardProps {
-  product: {
-    id: number;
-    title: string;
-    category: string;
-    price: number;
-    thumbnail?: string;
-    discountPercentage?: number;
-  };
-}
+import { useCart } from "../context/CartContext";
+import type { ProductCardProps } from "../types/product.type";
 
 const ProductCard = ({ product }: ProductCardProps) => {
+  const { updateCart } = useCart();
   const [isHovered, setIsHovered] = useState(false);
   const discountedPrice = product.discountPercentage
     ? (product.price * (1 - product.discountPercentage / 100)).toFixed(2)
     : product.price.toFixed(2);
 
   const handlePurchase = () => {
-    alert(`Added ${product.title} to cart!`);
+    updateCart({
+      productId: product.id,
+      title: product.title,
+      price: product.price,
+      thumbnail: product.thumbnail,
+      discountPercentage: product.discountPercentage,
+    });
   };
 
   return (
     <div className="bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300">
-      {/* Product Image */}
       <div className="relative w-full h-48 bg-muted overflow-hidden">
         <img
           src={

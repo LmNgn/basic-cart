@@ -9,7 +9,7 @@ export const addItem = async (body: any) => {
   return data;
 };
 export const updateItem = async (id: number | string, body: any) => {
-  const data = await api.post(`/carts/${id}`, body);
+  const data = await api.patch(`/carts/${id}`, body);
   return data;
 };
 export const removeItem = async (id: number | string) => {
