@@ -5,6 +5,7 @@ export const getCart = async () => {
   return data;
 };
 export const addItem = async (body: any) => {
+  console.log(body);
   const data = await api.post("/carts", body);
   return data;
 };
